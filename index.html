@@ -45,9 +45,15 @@ th,td{padding:7px 4px;border-bottom:1px solid var(--line)}
 .s-ok{color:var(--ok);font-weight:700}.s-bad{color:var(--bad);font-weight:700}.s-blank{color:var(--warn);font-weight:700}
 input[type=range]{width:100%}
 .err{color:var(--bad);font-size:13px;margin-top:8px}
+#topbar{position:sticky;top:0;z-index:50;background:var(--bg);border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top,0px) + 8px) 16px 8px}
+#topbar .in{max-width:640px;margin:auto;display:flex;justify-content:flex-start}
+#topCam{width:52px;height:52px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--pri);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+#topCam svg{width:26px;height:26px}
+#topCam:active{transform:scale(.94)}
 </style>
 </head>
 <body>
+<div id="topbar"><div class="in"><button id="topCam" type="button" aria-label="باز کردن دوربین" title="دوربین"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button></div></div>
 <header>
   <h1>تصحیح پاسخنامه تستی</h1>
   <p>۱۰ سؤال · ۴ گزینه‌ای (الف، ب، ج، د)</p>
@@ -138,7 +144,7 @@ const RATIO=.6875;                     // عرض/ارتفاع کادر
 const $=s=>document.querySelector(s);
 const fa=n=>Number(n).toLocaleString('fa-IR',{maximumFractionDigits:1});
 const SECTIONS=['home','cam','adjust','result'];
-function show(id){SECTIONS.forEach(s=>$('#'+s).hidden=(s!==id));window.scrollTo(0,0);}
+function show(id){SECTIONS.forEach(s=>$('#'+s).hidden=(s!==id));$('#topbar').hidden=(id==='cam');window.scrollTo(0,0);}
 
 /* ============ ذخیره ============ */
 let key=Array(NQ).fill(-1);
@@ -400,6 +406,7 @@ function camFail(){
 }
 function stopCam(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}}
 $('#btnCam').onclick=()=>openCam('grade');
+$('#topCam').onclick=()=>{stopCam();openCam('grade');};
 $('#scanKey').onclick=()=>{mode='key';$('#file').click();};
 $('#camCancel').onclick=()=>{stopCam();show('home');};
 $('#snap').onclick=()=>{const v=$('#video');setPhoto(v,v.videoWidth,v.videoHeight);stopCam();};
