@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>تصحیح پاسخنامه تستی</title>
+<style>
+:root{--bg:#f3f4f7;--card:#fff;--ink:#1b2130;--mut:#667085;--pri:#2457d6;--ok:#12a150;--bad:#d92d20;--warn:#f79009;--line:#e3e6ec;--soft:#eef2fb}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1219;--card:#191e29;--ink:#eef1f6;--mut:#9aa3b2;--line:#2a3141;--pri:#7a9bff;--soft:#222a3d}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Vazirmatn,Tahoma,system-ui,sans-serif;line-height:1.7}
+header{padding:18px 16px 6px;max-width:640px;margin:auto}
+header h1{margin:0;font-size:21px}
+header p{margin:0;color:var(--mut);font-size:13px}
+main{max-width:640px;margin:auto;padding:10px 16px 40px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:12px 0}
+.card h2{margin:0 0 10px;font-size:16px}
+button{font:inherit;border:0;border-radius:12px;padding:12px 14px;cursor:pointer;color:var(--ink);background:var(--soft)}
+button.primary{background:var(--pri);color:#fff;font-weight:700}
+button.ghost{background:transparent;border:1px solid var(--line)}
+button.full{width:100%;margin-top:8px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.row>button{flex:1 1 140px}
+#keyGrid{display:grid;gap:6px}
+.qrow{display:flex;align-items:center;gap:6px}
+.qn{width:34px;text-align:center;font-weight:700;color:var(--mut)}
+.opt{flex:1;padding:10px 0;border:1px solid var(--line);background:var(--card);font-weight:600}
+.opt.sel{background:var(--pri);color:#fff;border-color:var(--pri)}
+label.chk{display:flex;gap:8px;align-items:center;margin-top:10px;font-size:14px}
+.hint{color:var(--mut);font-size:12.5px;margin:6px 0 0}
+.stage{position:relative;margin:auto;overflow:hidden;border-radius:12px;background:#000}
+.stage video{width:100%;height:100%;display:block}
+#guide{position:absolute;border:3px dashed #fff;border-radius:10px;box-shadow:0 0 0 999px rgba(0,0,0,.5)}
+canvas{width:100%;display:block;border-radius:10px;touch-action:none}
+#res{touch-action:manipulation}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.stat{border-radius:12px;padding:10px 4px;background:var(--soft)}
+.stat b{display:block;font-size:26px}
+.stat.ok b{color:var(--ok)}.stat.bad b{color:var(--bad)}.stat.warn b{color:var(--warn)}
+.pct{text-align:center;font-size:15px;margin-top:10px}
+.pct b{font-size:24px}
+table{width:100%;border-collapse:collapse;font-size:14px;text-align:center}
+th,td{padding:7px 4px;border-bottom:1px solid var(--line)}
+.s-ok{color:var(--ok);font-weight:700}.s-bad{color:var(--bad);font-weight:700}.s-blank{color:var(--warn);font-weight:700}
+input[type=range]{width:100%}
+.err{color:var(--bad);font-size:13px;margin-top:8px}
+</style>
+</head>
+<body>
+<header>
+  <h1>تصحیح پاسخنامه تستی</h1>
+  <p>۱۰ سؤال · ۴ گزینه‌ای (الف، ب، ج، د)</p>
+</header>
+<main>
+
+<!-- صفحه اصلی -->
+<section id="home">
+  <div class="card">
+    <h2>۱) پاسخ‌های درست را وارد کنید</h2>
+    <div id="keyGrid" dir="ltr"></div>
+    <p class="hint">سؤالی که گزینه‌ای برایش انتخاب نشود، در تصحیح حساب نمی‌شود. برای برداشتن انتخاب، دوباره روی همان گزینه بزنید.</p>
+    <div class="row">
+      <button class="ghost" id="clearKey">پاک کردن کلید</button>
+      <button class="ghost" id="scanKey">اسکن کلید از روی پاسخنامهٔ پر شده</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>۲) پاسخنامهٔ دانش‌آموز را بگیرید</h2>
+    <button class="primary full" id="btnCam">باز کردن دوربین</button>
+    <button class="full" id="btnFile">عکس از گالری / دوربین گوشی</button>
+    <input type="file" id="file" accept="image/*" hidden>
+    <div class="err" id="camErr" hidden></div>
+    <label class="chk"><input type="checkbox" id="neg"> نمرهٔ منفی (هر غلط = یک‌سوم پاسخ درست)</label>
+    <label class="chk"><input type="checkbox" id="rev"> ترتیب ستون‌ها برعکس است (د، ج، ب، الف از چپ)</label>
+  </div>
+</section>
+
+<!-- دوربین -->
+<section id="cam" hidden>
+  <div class="card">
+    <div class="stage" id="stage"><video id="video" playsinline muted></video><div id="guide"></div></div>
+    <p class="hint">قاب بیرونی (کادر ضخیم) پاسخنامه را تقریباً داخل خط‌چین بیاورید. گوشه‌ها بعد از عکس‌گرفتن خودکار پیدا می‌شوند. گوشی را موازی کاغذ نگه دارید و نور کافی باشد.</p>
+    <div class="row">
+      <button class="primary" id="snap">گرفتن عکس</button>
+      <button class="ghost" id="camCancel">انصراف</button>
+    </div>
+  </div>
+</section>
+
+<!-- تنظیم گوشه‌ها -->
+<section id="adjust" hidden>
+  <div class="card">
+    <h2>گوشه‌ها را تنظیم کنید</h2>
+    <div class="err" id="autoMsg" hidden></div>
+    <canvas id="adj"></canvas>
+    <p class="hint">چهار دایرهٔ آبی را بکشید تا روی چهار گوشهٔ <b>کادر بیرونی</b> پاسخنامه قرار بگیرند. دایره‌های سبز باید روی حباب‌ها بیفتند.</p>
+    <div class="row">
+      <button class="primary" id="go">تصحیح کن</button>
+      <button id="autoBtn">تشخیص خودکار گوشه‌ها</button>
+      <button class="ghost" id="retake">عکس دوباره</button>
+    </div>
+  </div>
+</section>
+
+<!-- نتیجه -->
+<section id="result" hidden>
+  <div class="card" id="summary"></div>
+  <div class="card">
+    <canvas id="res"></canvas>
+    <p class="hint">اگر تشخیص اشتباه بود، روی حبابِ درست بزنید تا اصلاح شود (دوباره بزنید تا پاک شود).</p>
+    <label class="chk" style="display:block">حساسیت تشخیص پررنگی
+      <input type="range" id="sens" min="1" max="10" step="1"></label>
+    <p class="hint">اگر علامت‌های کم‌رنگ دیده نمی‌شوند حساسیت را بالا ببرید؛ اگر حباب خالی علامت‌خورده حساب می‌شود پایین بیاورید.</p>
+  </div>
+  <div class="card"><table id="tbl"></table></div>
+  <div class="row">
+    <button class="primary" id="saveKey" hidden>ثبت به‌عنوان کلید</button>
+    <button id="backAdj">تنظیم گوشه‌ها</button>
+    <button class="ghost" id="again">پاسخنامهٔ بعدی</button>
+  </div>
+</section>
+
+</main>
+
+<script>
+/* ============ تنظیمات چیدمان پاسخنامه (نسبت به کادر بیرونی) ============ */
+const OPTS=['الف','ب','ج','د'];
+const NQ=10;
+const CW=550, CH=800;                 // اندازهٔ استاندارد تصویر صاف‌شده
+const COLX=[.3455,.5,.65,.809];        // مرکز ستون‌ها (از چپ)
+const ROWY0=.129, ROWY1=.900;          // مرکز ردیف اول و آخر
+const ROWDY=(ROWY1-ROWY0)/(NQ-1);
+const RXp=.04*CW, RYp=.022*CH;         // شعاع ناحیهٔ بررسی داخل هر حباب
+const RATIO=.6875;                     // عرض/ارتفاع کادر
+
+const $=s=>document.querySelector(s);
+const fa=n=>Number(n).toLocaleString('fa-IR',{maximumFractionDigits:1});
+const SECTIONS=['home','cam','adjust','result'];
+function show(id){SECTIONS.forEach(s=>$('#'+s).hidden=(s!==id));window.scrollTo(0,0);}
+
+/* ============ ذخیره ============ */
+let key=Array(NQ).fill(-1);
+const settings={neg:false,rev:false,sens:7};
+try{const k=JSON.parse(localStorage.getItem('omr_key')||'null');if(Array.isArray(k)&&k.length===NQ)key=k;}catch(e){}
+try{Object.assign(settings,JSON.parse(localStorage.getItem('omr_set')||'{}'));}catch(e){}
+function saveAll(){try{localStorage.setItem('omr_key',JSON.stringify(key));localStorage.setItem('omr_set',JSON.stringify(settings));}catch(e){}}
+
+/* ============ کلید پاسخ ============ */
+function buildKey(){
+  const g=$('#keyGrid');g.innerHTML='';
+  for(let q=0;q<NQ;q++){
+    const r=document.createElement('div');r.className='qrow';
+    r.innerHTML='<span class="qn">'+fa(q+1)+'</span>';
+    OPTS.forEach((t,o)=>{
+      const b=document.createElement('button');b.className='opt'+(key[q]===o?' sel':'');b.textContent=t;
+      b.onclick=()=>{key[q]=(key[q]===o?-1:o);saveAll();buildKey();};
+      r.appendChild(b);
+    });
+    g.appendChild(r);
+  }
+}
+$('#clearKey').onclick=()=>{key=Array(NQ).fill(-1);saveAll();buildKey();};
+$('#neg').checked=settings.neg;$('#rev').checked=settings.rev;$('#sens').value=settings.sens;
+$('#neg').onchange=e=>{settings.neg=e.target.checked;saveAll();};
+$('#rev').onchange=e=>{settings.rev=e.target.checked;saveAll();};
+buildKey();
+
+/* ============ هندسهٔ تصویر ============ */
+function solve(A,b){
+  const n=8;for(let i=0;i<n;i++)A[i].push(b[i]);
+  for(let c=0;c<n;c++){
+    let p=c;for(let r=c+1;r<n;r++)if(Math.abs(A[r][c])>Math.abs(A[p][c]))p=r;
+    [A[c],A[p]]=[A[p],A[c]];
+    const d=A[c][c];if(Math.abs(d)<1e-12)return null;
+    for(let k=c;k<=n;k++)A[c][k]/=d;
+    for(let r=0;r<n;r++){if(r===c)continue;const f=A[r][c];if(!f)continue;for(let k=c;k<=n;k++)A[r][k]-=f*A[c][k];}
+  }
+  return A.map(r=>r[n]);
+}
+function homography(dst,src){
+  const A=[],b=[];
+  for(let i=0;i<4;i++){
+    const [u,v]=dst[i],[x,y]=src[i];
+    A.push([u,v,1,0,0,0,-u*x,-v*x]);b.push(x);
+    A.push([0,0,0,u,v,1,-u*y,-v*y]);b.push(y);
+  }
+  const h=solve(A,b);return h?[...h,1]:null;
+}
+function apply(H,u,v){const w=H[6]*u+H[7]*v+H[8];return[(H[0]*u+H[1]*v+H[2])/w,(H[3]*u+H[4]*v+H[5])/w];}
+const DST=[[0,0],[CW,0],[CW,CH],[0,CH]];
+const colOf=o=>COLX[settings.rev?3-o:o]*CW;
+const rowOf=q=>(ROWY0+ROWDY*q)*CH;
+
+/* ============ تشخیص خودکار کادر پاسخنامه ============ */
+function detectSheet(rgba,W,H){
+  const MAXS=720,S=Math.min(1,MAXS/Math.max(W,H));
+  const sw=Math.max(16,Math.round(W*S)),sh=Math.max(16,Math.round(H*S)),N=sw*sh;
+  // ۱) کوچک‌کردن + خاکستری
+  let g=new Float32Array(N);
+  const bx=W/sw,by=H/sh;
+  for(let y=0;y<sh;y++){
+    const y0=Math.floor(y*by),y1=Math.max(y0+1,Math.floor((y+1)*by));
+    for(let x=0;x<sw;x++){
+      const x0=Math.floor(x*bx),x1=Math.max(x0+1,Math.floor((x+1)*bx));
+      let s=0,n=0;
+      for(let yy=y0;yy<y1&&yy<H;yy++){let j=(yy*W+x0)*4;for(let xx=x0;xx<x1&&xx<W;xx++,j+=4){s+=.299*rgba[j]+.587*rgba[j+1]+.114*rgba[j+2];n++;}}
+      g[y*sw+x]=n?s/n:255;
+    }
+  }
+  // ۲) black-hat: فقط خطوط تیره و باریک (قاب) پررنگ می‌شوند، نه لبهٔ کاغذ یا سایه
+  const r=Math.max(4,Math.round(Math.max(sw,sh)/80));
+  const filt=(src,isMax)=>{
+    const tmp=new Float32Array(N),out=new Float32Array(N);
+    for(let y=0;y<sh;y++)for(let x=0;x<sw;x++){
+      let v=isMax?-1:1e9;const a=Math.max(0,x-r),b=Math.min(sw-1,x+r);
+      for(let k=a;k<=b;k++){const t=src[y*sw+k];if(isMax?t>v:t<v)v=t;}
+      tmp[y*sw+x]=v;
+    }
+    for(let y=0;y<sh;y++)for(let x=0;x<sw;x++){
+      let v=isMax?-1:1e9;const a=Math.max(0,y-r),b=Math.min(sh-1,y+r);
+      for(let k=a;k<=b;k++){const t=tmp[k*sw+x];if(isMax?t>v:t<v)v=t;}
+      out[y*sw+x]=v;
+    }
+    return out;
+  };
+  const closed=filt(filt(g,true),false);
+  const bh=new Float32Array(N);for(let i=0;i<N;i++)bh[i]=Math.max(0,closed[i]-g[i]);
+  const samp=[];for(let i=0;i<N;i+=7)samp.push(g[i]);samp.sort((a,b)=>a-b);
+  const bright=samp[Math.floor(samp.length*.9)]||200;
+
+  // انتگرال برای میانگین محلی (روش آستانهٔ تطبیقی)
+  const I=new Float64Array((sw+1)*(sh+1));
+  for(let y=0;y<sh;y++){let row=0;for(let x=0;x<sw;x++){row+=g[y*sw+x];I[(y+1)*(sw+1)+x+1]=I[y*(sw+1)+x+1]+row;}}
+  const RW=Math.max(8,Math.round(Math.max(sw,sh)/18));
+  const localMean=(x,y)=>{
+    const x0=Math.max(0,x-RW),x1=Math.min(sw,x+RW+1),y0=Math.max(0,y-RW),y1=Math.min(sh,y+RW+1);
+    return(I[y1*(sw+1)+x1]-I[y0*(sw+1)+x1]-I[y1*(sw+1)+x0]+I[y0*(sw+1)+x0])/((x1-x0)*(y1-y0));
+  };
+  // چند روش مختلف ماسک: خط باریک، ناحیهٔ تیره (سراسری)، ناحیهٔ تیره (محلی)
+  const makers=[];
+  for(const f of [.28,.18,.4])makers.push(()=>{const m=new Uint8Array(N),t=bright*f;for(let i=0;i<N;i++)m[i]=bh[i]>t?1:0;return m;});
+  for(const f of [.5,.62,.74,.84])makers.push(()=>{const m=new Uint8Array(N),t=bright*f;for(let i=0;i<N;i++)m[i]=g[i]<t?1:0;return m;});
+  for(const f of [.78,.88])makers.push(()=>{const m=new Uint8Array(N);for(let y=0;y<sh;y++)for(let x=0;x<sw;x++){const i=y*sw+x;m[i]=(g[i]<localMean(x,y)*f&&g[i]<bright*.9)?1:0;}return m;});
+
+  let best=null;
+  for(const mk of makers){
+    const m0=mk();
+    const dm=new Uint8Array(N);   // یک پیکسل ضخیم‌تر تا خطوط شکسته به هم وصل شوند
+    for(let y=0;y<sh;y++)for(let x=0;x<sw;x++){
+      if(!m0[y*sw+x])continue;
+      for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const xx=x+dx,yy=y+dy;if(xx>=0&&yy>=0&&xx<sw&&yy<sh)dm[yy*sw+xx]=1;}
+    }
+    // ۳) اجزای متصل
+    const lab=new Int32Array(N),stack=new Int32Array(N),comps=[];
+    for(let i=0;i<N;i++){
+      if(!dm[i]||lab[i])continue;
+      const id=comps.length+1;let sp=0;stack[sp++]=i;lab[i]=id;
+      let cnt=0,minx=sw,maxx=0,miny=sh,maxy=0;
+      while(sp){
+        const p=stack[--sp],x=p%sw,y=(p/sw)|0;cnt++;
+        if(x<minx)minx=x;if(x>maxx)maxx=x;if(y<miny)miny=y;if(y>maxy)maxy=y;
+        for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+          const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=sw||yy>=sh)continue;
+          const q=yy*sw+xx;if(dm[q]&&!lab[q]){lab[q]=id;stack[sp++]=q;}
+        }
+      }
+      comps.push({id,cnt,minx,maxx,miny,maxy});
+    }
+    const cands=comps.filter(c=>{
+      const a=(c.maxx-c.minx)*(c.maxy-c.miny)/N;return a>.04&&a<.97&&c.cnt>80;
+    }).sort((a,b)=>(b.maxx-b.minx)*(b.maxy-b.miny)-(a.maxx-a.minx)*(a.maxy-a.miny)).slice(0,8);
+    for(const c of cands){
+      const res=quadOfComp(c,lab,m0,sw,sh);
+      if(res&&(!best||res.score>best.score))best=res;
+    }
+    if(best)break;
+  }
+  if(!best)return null;
+  return best.q.map(p=>[Math.min(W,Math.max(0,p[0]/S)),Math.min(H,Math.max(0,p[1]/S))]);
+}
+function fitLine(P){
+  let mx=0,my=0;P.forEach(p=>{mx+=p[0];my+=p[1];});mx/=P.length;my/=P.length;
+  let sxx=0,syy=0,sxy=0;P.forEach(p=>{const a=p[0]-mx,b=p[1]-my;sxx+=a*a;syy+=b*b;sxy+=a*b;});
+  const th=.5*Math.atan2(2*sxy,sxx-syy);return{x:mx,y:my,dx:Math.cos(th),dy:Math.sin(th)};
+}
+function lineDist(l,p){return Math.abs((p[0]-l.x)*(-l.dy)+(p[1]-l.y)*l.dx);}
+function meet(a,b){
+  const den=a.dx*b.dy-a.dy*b.dx;if(Math.abs(den)<1e-6)return null;
+  const t=((b.x-a.x)*b.dy-(b.y-a.y)*b.dx)/den;return[a.x+t*a.dx,a.y+t*a.dy];
+}
+function quadOfComp(c,lab,mask,sw,sh){
+  const bw=c.maxx-c.minx+1,bh=c.maxy-c.miny+1;
+  const top=new Int32Array(bw).fill(-1),bot=new Int32Array(bw).fill(-1),lef=new Int32Array(bh).fill(-1),rig=new Int32Array(bh).fill(-1);
+  for(let y=c.miny;y<=c.maxy;y++)for(let x=c.minx;x<=c.maxx;x++){
+    const i=y*sw+x;if(lab[i]!==c.id||!mask[i])continue;
+    if(top[x-c.minx]<0)top[x-c.minx]=y;bot[x-c.minx]=y;
+    if(lef[y-c.miny]<0)lef[y-c.miny]=x;rig[y-c.miny]=x;
+  }
+  const pts=[];
+  for(let i=0;i<bw;i++){if(top[i]>=0){pts.push([c.minx+i,top[i]]);pts.push([c.minx+i,bot[i]]);}}
+  for(let i=0;i<bh;i++){if(lef[i]>=0){pts.push([lef[i],c.miny+i]);pts.push([rig[i],c.miny+i]);}}
+  if(pts.length<40)return null;
+  // گوشه‌های تقریبی با نقاط حدی قطرها
+  let tl=pts[0],tr=pts[0],br=pts[0],bl=pts[0];
+  for(const p of pts){
+    if(p[0]+p[1]<tl[0]+tl[1])tl=p;if(p[0]+p[1]>br[0]+br[1])br=p;
+    if(p[0]-p[1]>tr[0]-tr[1])tr=p;if(p[0]-p[1]<bl[0]-bl[1])bl=p;
+  }
+  const A=[tl,tr,br,bl],lines=[];
+  for(let s=0;s<4;s++){
+    const P=A[s],Q=A[(s+1)%4],L=Math.hypot(Q[0]-P[0],Q[1]-P[1]);if(L<20)return null;
+    const ux=(Q[0]-P[0])/L,uy=(Q[1]-P[1])/L;
+    let line={x:P[0],y:P[1],dx:ux,dy:uy},tol=.07*L;
+    for(let it=0;it<4;it++){
+      const sel=pts.filter(p=>{const t=((p[0]-P[0])*ux+(p[1]-P[1])*uy)/L;return t>.18&&t<.82&&lineDist(line,p)<tol;});
+      if(sel.length<10)return null;
+      line=fitLine(sel);tol=Math.max(.012*L,tol*.5);
+    }
+    lines.push(line);
+  }
+  const q=[meet(lines[3],lines[0]),meet(lines[0],lines[1]),meet(lines[1],lines[2]),meet(lines[2],lines[3])];
+  if(q.some(p=>!p||!isFinite(p[0])))return null;
+  // اعتبارسنجی: محدب، داخل تصویر، نسبت ابعاد
+  let sign=0;
+  for(let i=0;i<4;i++){
+    const a=q[i],b=q[(i+1)%4],d=q[(i+2)%4];
+    const cr=(b[0]-a[0])*(d[1]-b[1])-(b[1]-a[1])*(d[0]-b[0]);
+    if(Math.abs(cr)<1e-6)return null;
+    const s=cr>0?1:-1;if(sign&&s!==sign)return null;sign=s;
+  }
+  const mg=.03*Math.max(sw,sh);
+  if(q.some(p=>p[0]<-mg||p[1]<-mg||p[0]>sw+mg||p[1]>sh+mg))return null;
+  const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
+  const w1=dist(q[0],q[1]),w2=dist(q[3],q[2]),h1=dist(q[0],q[3]),h2=dist(q[1],q[2]);
+  if(Math.min(w1,w2)/Math.max(w1,w2)<.6||Math.min(h1,h2)/Math.max(h1,h2)<.6)return null;
+  const ratio=((w1+w2)/2)/((h1+h2)/2),dr=Math.abs(ratio-RATIO)/RATIO;
+  if(dr>.3)return null;
+  let area=0;for(let i=0;i<4;i++){const a=q[i],b=q[(i+1)%4];area+=a[0]*b[1]-b[0]*a[1];}
+  area=Math.abs(area)/2;if(area<.04*sw*sh)return null;
+  return{q,score:area/(sw*sh)*(1-dr)};
+}
+
+/* ============ ورود تصویر ============ */
+const photo=document.createElement('canvas');
+let corners=[];let mode='grade'; // grade | key
+function guideFrac(vw,vh){
+  let gh=.86,gw=RATIO*gh*vh/vw;
+  if(gw>.92){gw=.92;gh=gw*vw/(vh*RATIO);}
+  return{x:(1-gw)/2,y:(1-gh)/2,w:gw,h:gh};
+}
+function setPhoto(src,w,h){
+  const s=Math.min(1,1800/Math.max(w,h));
+  photo.width=Math.round(w*s);photo.height=Math.round(h*s);
+  photo.getContext('2d').drawImage(src,0,0,photo.width,photo.height);
+  const g=guideFrac(photo.width,photo.height),W=photo.width,Hh=photo.height;
+  corners=[[g.x*W,g.y*Hh],[(g.x+g.w)*W,g.y*Hh],[(g.x+g.w)*W,(g.y+g.h)*Hh],[g.x*W,(g.y+g.h)*Hh]];
+  if(runAuto()){autoUsed=true;warp();analyze();render();show('result');}
+  else{autoUsed=false;show('adjust');drawAdjust();showAutoMsg(false);}
+}
+let autoUsed=false;
+function runAuto(){
+  try{
+    const d=photo.getContext('2d').getImageData(0,0,photo.width,photo.height).data;
+    const q=detectSheet(d,photo.width,photo.height);
+    if(q){corners=q;return true;}
+  }catch(e){}
+  return false;
+}
+function showAutoMsg(ok){
+  const m=$('#autoMsg');m.hidden=false;
+  m.style.color=ok?'var(--ok)':'var(--bad)';
+  m.textContent=ok?'گوشه‌ها خودکار پیدا شد. در صورت نیاز اصلاح کنید.':'تشخیص خودکار گوشه‌ها موفق نبود. گوشه‌ها را دستی بکشید (یا عکس را واضح‌تر و با نور بهتر بگیرید).';
+}
+
+/* دوربین زنده */
+let stream=null;
+async function openCam(m){
+  mode=m;$('#camErr').hidden=true;
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){return camFail();}
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080}},audio:false});
+    const v=$('#video');v.srcObject=stream;await v.play();
+    show('cam');
+    const fit=()=>{
+      const vw=v.videoWidth,vh=v.videoHeight;if(!vw)return;
+      const st=$('#stage');st.style.aspectRatio=vw+'/'+vh;
+      st.style.width='min(100%,calc(65vh * '+(vw/vh)+'))';
+      const g=guideFrac(vw,vh),gd=$('#guide');
+      gd.style.left=g.x*100+'%';gd.style.top=g.y*100+'%';gd.style.width=g.w*100+'%';gd.style.height=g.h*100+'%';
+    };
+    fit();v.onresize=fit;setTimeout(fit,400);
+  }catch(e){camFail();}
+}
+function camFail(){
+  const el=$('#camErr');el.hidden=false;
+  el.textContent='دسترسی به دوربین زنده ممکن نشد (ممکن است صفحه از فایل باز شده یا اجازه داده نشده باشد). از دکمهٔ «عکس از گالری / دوربین گوشی» استفاده کنید.';
+  show('home');
+}
+function stopCam(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}}
+$('#btnCam').onclick=()=>openCam('grade');
+$('#scanKey').onclick=()=>{mode='key';$('#file').click();};
+$('#camCancel').onclick=()=>{stopCam();show('home');};
+$('#snap').onclick=()=>{const v=$('#video');setPhoto(v,v.videoWidth,v.videoHeight);stopCam();};
+$('#btnFile').onclick=()=>{mode='grade';$('#file').click();};
+$('#file').onchange=e=>{
+  const f=e.target.files[0];e.target.value='';if(!f)return;
+  const img=new Image();const url=URL.createObjectURL(f);
+  img.onload=()=>{setPhoto(img,img.naturalWidth,img.naturalHeight);URL.revokeObjectURL(url);};
+  img.src=url;
+};
+
+/* ============ تنظیم گوشه‌ها ============ */
+const adj=$('#adj');
+function drawAdjust(){
+  const ctx=adj.getContext('2d');adj.width=photo.width;adj.height=photo.height;
+  ctx.drawImage(photo,0,0);
+  const k=adj.width/Math.max(1,adj.getBoundingClientRect().width||adj.width);
+  const H=homography(DST,corners);
+  if(H){
+    ctx.strokeStyle='#12a150';ctx.lineWidth=2*k;
+    for(let q=0;q<NQ;q++)for(let o=0;o<4;o++){
+      const cx=colOf(o),cy=rowOf(q);
+      const c=apply(H,cx,cy),a=apply(H,cx+RXp,cy),b=apply(H,cx,cy+RYp);
+      ctx.beginPath();ctx.ellipse(c[0],c[1],Math.max(3,Math.hypot(a[0]-c[0],a[1]-c[1])),Math.max(3,Math.hypot(b[0]-c[0],b[1]-c[1])),0,0,7);ctx.stroke();
+    }
+  }
+  ctx.strokeStyle='#2457d6';ctx.lineWidth=3*k;ctx.beginPath();
+  corners.forEach((c,i)=>i?ctx.lineTo(c[0],c[1]):ctx.moveTo(c[0],c[1]));ctx.closePath();ctx.stroke();
+  corners.forEach(c=>{
+    ctx.beginPath();ctx.arc(c[0],c[1],16*k,0,7);ctx.fillStyle='rgba(36,87,214,.35)';ctx.fill();
+    ctx.lineWidth=3*k;ctx.strokeStyle='#fff';ctx.stroke();
+    ctx.beginPath();ctx.arc(c[0],c[1],3*k,0,7);ctx.fillStyle='#2457d6';ctx.fill();
+  });
+}
+let drag=-1,off=[0,0];
+const toCanvas=(cv,e)=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*cv.width/r.width,(e.clientY-r.top)*cv.height/r.height];};
+adj.addEventListener('pointerdown',e=>{
+  const p=toCanvas(adj,e);let best=-1,bd=1e9;
+  corners.forEach((c,i)=>{const d=Math.hypot(c[0]-p[0],c[1]-p[1]);if(d<bd){bd=d;best=i;}});
+  const lim=90*adj.width/adj.getBoundingClientRect().width;
+  if(bd<lim){drag=best;off=[corners[best][0]-p[0],corners[best][1]-p[1]];adj.setPointerCapture(e.pointerId);e.preventDefault();}
+});
+adj.addEventListener('pointermove',e=>{
+  if(drag<0)return;const p=toCanvas(adj,e);
+  corners[drag]=[Math.min(adj.width,Math.max(0,p[0]+off[0])),Math.min(adj.height,Math.max(0,p[1]+off[1]))];
+  drawAdjust();
+});
+['pointerup','pointercancel'].forEach(t=>adj.addEventListener(t,()=>{drag=-1;}));
+$('#retake').onclick=()=>{show('home');};
+$('#go').onclick=()=>{autoUsed=false;warp();analyze();render();show('result');};
+$('#autoBtn').onclick=()=>{const ok=runAuto();drawAdjust();showAutoMsg(ok);};
+$('#backAdj').onclick=()=>{show('adjust');drawAdjust();$('#autoMsg').hidden=true;};
+$('#again').onclick=()=>show('home');
+
+/* ============ صاف‌کردن و تحلیل ============ */
+const warpCanvas=document.createElement('canvas');warpCanvas.width=CW;warpCanvas.height=CH;
+let gray=null,cells=[],det=[],override=Array(NQ).fill(undefined),paperLow=false;
+function warp(){
+  const H=homography(DST,corners);
+  const sw=photo.width,sh=photo.height;
+  const sd=photo.getContext('2d').getImageData(0,0,sw,sh).data;
+  const wctx=warpCanvas.getContext('2d');const out=wctx.createImageData(CW,CH);
+  gray=new Float32Array(CW*CH);
+  for(let v=0;v<CH;v++)for(let u=0;u<CW;u++){
+    const uu=u+.5,vv=v+.5,w=H[6]*uu+H[7]*vv+H[8];
+    const x=Math.floor((H[0]*uu+H[1]*vv+H[2])/w),y=Math.floor((H[3]*uu+H[4]*vv+H[5])/w);
+    const i=(v*CW+u)*4;
+    if(x>=0&&y>=0&&x<sw&&y<sh){
+      const j=(y*sw+x)*4,r=sd[j],g=sd[j+1],b=sd[j+2];
+      out.data[i]=r;out.data[i+1]=g;out.data[i+2]=b;out.data[i+3]=255;
+      gray[v*CW+u]=.299*r+.587*g+.114*b;
+    }else{out.data[i]=out.data[i+1]=out.data[i+2]=out.data[i+3]=255;gray[v*CW+u]=255;}
+  }
+  wctx.putImageData(out,0,0);
+  // مقادیر خاکستری هر حباب
+  cells=[];const papers=[];
+  for(let q=0;q<NQ;q++){
+    const row=[];
+    for(let o=0;o<4;o++){
+      const cx=colOf(o),cy=rowOf(q),vals=[];
+      for(let y=Math.floor(cy-RYp);y<=Math.ceil(cy+RYp);y++)for(let x=Math.floor(cx-RXp);x<=Math.ceil(cx+RXp);x++){
+        if(x<0||y<0||x>=CW||y>=CH)continue;
+        if(((x-cx)/RXp)**2+((y-cy)/RYp)**2<=1)vals.push(gray[y*CW+x]);
+      }
+      row.push({vals,mean:vals.reduce((a,b)=>a+b,0)/Math.max(1,vals.length)});
+    }
+    const m=row.map(c=>c.mean).sort((a,b)=>b-a);
+    papers.push((m[0]+m[1])/2);cells.push(row);
+  }
+  const sorted=[...papers].sort((a,b)=>a-b);const gm=sorted[Math.floor(sorted.length/2)];
+  cells.forEach((row,q)=>row.paper=(papers[q]+gm)/2);
+  paperLow=gm<90;
+  override=Array(NQ).fill(undefined);
+}
+function analyze(){
+  const minFill=.65-settings.sens*.05;
+  det=cells.map(row=>{
+    const marked=[];
+    row.forEach((c,o)=>{
+      const thr=row.paper*.62;let n=0;for(const v of c.vals)if(v<thr)n++;
+      if(n/Math.max(1,c.vals.length)>=minFill)marked.push(o);
+    });
+    return marked;
+  });
+}
+const answerOf=q=>{
+  if(override[q]!==undefined)return override[q]===-1?null:override[q];
+  const d=det[q];if(d.length===0)return null;if(d.length>1)return -2;return d[0];
+};
+$('#sens').oninput=e=>{settings.sens=+e.target.value;saveAll();analyze();render();};
+
+/* ============ نمایش نتیجه ============ */
+const res=$('#res');
+function status(q){
+  if(mode==='key')return null;
+  if(key[q]<0)return'skip';
+  const a=answerOf(q);
+  if(a===null)return'blank';
+  return a===key[q]?'ok':'bad';
+}
+function render(){
+  res.width=CW;res.height=CH;const ctx=res.getContext('2d');
+  ctx.drawImage(warpCanvas,0,0);
+  for(let q=0;q<NQ;q++){
+    const a=answerOf(q),st=status(q),cy=rowOf(q);
+    const ring=(o,color,fill,dash)=>{
+      ctx.beginPath();ctx.ellipse(colOf(o),cy,RXp*1.55,RYp*1.65,0,0,7);
+      if(fill){ctx.fillStyle=fill;ctx.fill();}
+      ctx.setLineDash(dash||[]);ctx.lineWidth=4;ctx.strokeStyle=color;ctx.stroke();ctx.setLineDash([]);
+    };
+    if(mode==='key'){
+      if(a>=0)ring(a,'#2457d6','rgba(36,87,214,.25)');
+      else if(a===-2)det[q].forEach(o=>ring(o,'#f79009','rgba(247,144,9,.25)'));
+      continue;
+    }
+    if(st==='skip'){if(a>=0)ring(a,'#98a2b3','rgba(152,162,179,.25)');continue;}
+    if(st==='ok')ring(a,'#12a150','rgba(18,161,80,.3)');
+    else if(st==='bad'){
+      if(a>=0)ring(a,'#d92d20','rgba(217,45,32,.3)');
+      else det[q].forEach(o=>ring(o,'#f79009','rgba(247,144,9,.25)'));
+      ring(key[q],'#12a150',null,[8,6]);
+    }else if(st==='blank')ring(key[q],'#f79009',null,[8,6]);
+  }
+  // جدول
+  let rows='<tr><th>سؤال</th><th>پاسخ دانش‌آموز</th>'+(mode==='key'?'':'<th>پاسخ درست</th><th>نتیجه</th>')+'</tr>';
+  let ok=0,bad=0,blank=0,total=0;
+  for(let q=0;q<NQ;q++){
+    const a=answerOf(q),st=status(q);
+    const aTxt=a===null?'—':a===-2?'چندگزینه‌ای':OPTS[a];
+    if(mode==='key'){rows+='<tr><td>'+fa(q+1)+'</td><td>'+aTxt+'</td></tr>';continue;}
+    if(st!=='skip'){total++;if(st==='ok')ok++;else if(st==='bad')bad++;else blank++;}
+    const cls=st==='ok'?'s-ok':st==='bad'?'s-bad':'s-blank';
+    const lab=st==='ok'?'درست ✓':st==='bad'?'غلط ✗':st==='blank'?'نزده':'حساب نمی‌شود';
+    rows+='<tr><td>'+fa(q+1)+'</td><td>'+aTxt+'</td><td>'+(key[q]>=0?OPTS[key[q]]:'—')+'</td><td class="'+cls+'">'+lab+'</td></tr>';
+  }
+  $('#tbl').innerHTML=rows;
+  const sm=$('#summary');
+  if(mode==='key'){
+    sm.innerHTML='<h2>پاسخ‌های تشخیص‌داده‌شده</h2><p class="hint">اگر همه‌چیز درست است «ثبت به‌عنوان کلید» را بزنید.</p>';
+  }else{
+    const pct=total?(settings.neg?(ok-bad/3)/total*100:ok/total*100):0;
+    sm.innerHTML='<div class="stats"><div class="stat ok"><b>'+fa(ok)+'</b>درست</div><div class="stat bad"><b>'+fa(bad)+'</b>غلط</div><div class="stat warn"><b>'+fa(blank)+'</b>نزده</div></div>'
+      +'<div class="pct">درصد'+(settings.neg?' (با نمرهٔ منفی)':'')+': <b>'+fa(Math.round(pct*10)/10)+'٪</b></div>'
+      +(total===0?'<div class="err">هیچ پاسخ درستی در کلید وارد نشده است.</div>':'');
+  }
+  if(autoUsed)sm.innerHTML+='<p class="hint">گوشه‌های پاسخنامه خودکار تشخیص داده شد. اگر نتیجه درست نیست «تنظیم گوشه‌ها» را بزنید.</p>';
+  if(paperLow)sm.innerHTML+='<div class="err">عکس تاریک به نظر می‌رسد؛ در نور بهتر دوباره عکس بگیرید.</div>';
+  $('#saveKey').hidden=(mode!=='key');
+  $('#sens').value=settings.sens;
+}
+res.addEventListener('click',e=>{
+  const p=toCanvas(res,e);
+  const q=Math.round((p[1]/CH-ROWY0)/ROWDY);if(q<0||q>=NQ)return;
+  if(Math.abs(p[1]-rowOf(q))>ROWDY*CH*.55)return;
+  let best=-1,bd=1e9;
+  for(let o=0;o<4;o++){const d=Math.abs(p[0]-colOf(o));if(d<bd){bd=d;best=o;}}
+  if(bd>CW*.1)return;
+  override[q]=(answerOf(q)===best)?-1:best;
+  render();
+});
+$('#saveKey').onclick=()=>{
+  for(let q=0;q<NQ;q++){const a=answerOf(q);key[q]=a>=0?a:-1;}
+  saveAll();buildKey();mode='grade';show('home');
+};
+</script>
+</body>
+</html>
