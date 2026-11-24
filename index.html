@@ -45,24 +45,19 @@ th,td{padding:7px 4px;border-bottom:1px solid var(--line)}
 .s-ok{color:var(--ok);font-weight:700}.s-bad{color:var(--bad);font-weight:700}.s-blank{color:var(--warn);font-weight:700}
 input[type=range]{width:100%}
 .err{color:var(--bad);font-size:13px;margin-top:8px}
-#tbSpacer{height:calc(env(safe-area-inset-top,0px) + 76px)}
-#toolbar{position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);left:50%;transform:translateX(-50%);z-index:100;display:flex;gap:8px;align-items:center;padding:7px 10px;border-radius:999px;background:var(--card);border:1px solid var(--line);box-shadow:0 4px 18px rgba(0,0,0,.28)}
-#toolbar button{width:50px;height:50px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--soft);color:var(--ink)}
-#toolbar button svg{width:25px;height:25px}
+#tbSpacer{height:calc(env(safe-area-inset-bottom,0px) + 84px)}
+#toolbar{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);left:50%;transform:translateX(-50%);z-index:100;display:flex;gap:10px;align-items:center;padding:8px 12px;border-radius:999px;background:var(--card);border:1px solid var(--line);box-shadow:0 4px 18px rgba(0,0,0,.3)}
+#toolbar button{width:52px;height:52px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--soft);color:var(--ink)}
+#toolbar button svg{width:26px;height:26px}
 #toolbar button:active{transform:scale(.92)}
 #toolbar #topCam{background:var(--pri);color:#fff}
+#toolbar #snap{width:64px;height:64px;background:var(--pri);color:#fff}
+#toolbar #snap svg{width:34px;height:34px}
 #toolbar #saveKey,#toolbar #tbGo{background:var(--ok);color:#fff}
+#toolbar #camCancel{background:transparent;border:1px solid var(--line)}
 </style>
 </head>
 <body>
-<div id="tbSpacer"></div>
-<div id="toolbar">
-  <button type="button" id="topCam" aria-label="دوربین (پاسخنامهٔ بعدی)" title="دوربین"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
-  <button type="button" id="tbGo" data-s="adjust" aria-label="تصحیح کن" title="تصحیح"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></button>
-  <button type="button" id="backAdj" data-s="result" aria-label="تنظیم گوشه‌ها" title="تنظیم گوشه‌ها"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M2 6h14a2 2 0 0 1 2 2v14"/></svg></button>
-  <button type="button" id="saveKey" hidden aria-label="ثبت به‌عنوان کلید" title="ثبت کلید"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg></button>
-  <button type="button" id="again" data-s="adjust,result" aria-label="صفحهٔ اصلی" title="صفحهٔ اصلی"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg></button>
-</div>
 <header>
   <h1>تصحیح پاسخنامه تستی</h1>
   <p>۱۰ سؤال · ۴ گزینه‌ای (الف، ب، ج، د)</p>
@@ -97,10 +92,6 @@ input[type=range]{width:100%}
   <div class="card">
     <div class="stage" id="stage"><video id="video" playsinline muted></video><div id="guide"></div></div>
     <p class="hint">قاب بیرونی (کادر ضخیم) پاسخنامه را تقریباً داخل خط‌چین بیاورید. گوشه‌ها بعد از عکس‌گرفتن خودکار پیدا می‌شوند. گوشی را موازی کاغذ نگه دارید و نور کافی باشد.</p>
-    <div class="row">
-      <button class="primary" id="snap">گرفتن عکس</button>
-      <button class="ghost" id="camCancel">انصراف</button>
-    </div>
   </div>
 </section>
 
@@ -134,6 +125,16 @@ input[type=range]{width:100%}
 
 </main>
 
+<div id="tbSpacer"></div>
+<div id="toolbar">
+  <button type="button" id="again" data-s="adjust,result" aria-label="صفحهٔ اصلی" title="صفحهٔ اصلی"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg></button>
+  <button type="button" id="backAdj" data-s="result" aria-label="تنظیم گوشه‌ها" title="تنظیم گوشه‌ها"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M2 6h14a2 2 0 0 1 2 2v14"/></svg></button>
+  <button type="button" id="tbGo" data-s="adjust" aria-label="تصحیح کن" title="تصحیح"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></button>
+  <button type="button" id="saveKey" hidden aria-label="ثبت به‌عنوان کلید" title="ثبت کلید"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg></button>
+  <button type="button" id="topCam" data-s="home,adjust,result" aria-label="دوربین (پاسخنامهٔ بعدی)" title="دوربین"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+  <button type="button" id="snap" data-s="cam" aria-label="گرفتن عکس" title="گرفتن عکس"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="5.5" fill="currentColor"/></svg></button>
+  <button type="button" id="camCancel" data-s="cam" aria-label="انصراف" title="انصراف"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+</div>
 <script>
 /* ============ تنظیمات چیدمان پاسخنامه (نسبت به کادر بیرونی) ============ */
 const OPTS=['الف','ب','ج','د'];
@@ -148,13 +149,12 @@ const RATIO=.6875;                     // عرض/ارتفاع کادر
 const $=s=>document.querySelector(s);
 const fa=n=>Number(n).toLocaleString('fa-IR',{maximumFractionDigits:1});
 const SECTIONS=['home','cam','adjust','result'];
-function show(id){
-  SECTIONS.forEach(s=>$('#'+s).hidden=(s!==id));
-  $('#toolbar').hidden=$('#tbSpacer').hidden=(id==='cam');
+function updBar(id){
   document.querySelectorAll('#toolbar [data-s]').forEach(b=>b.hidden=!b.dataset.s.split(',').includes(id));
   if(id!=='result')$('#saveKey').hidden=true;
-  window.scrollTo(0,0);
 }
+function show(id){SECTIONS.forEach(s=>$('#'+s).hidden=(s!==id));updBar(id);window.scrollTo(0,0);}
+updBar('home');
 
 /* ============ ذخیره ============ */
 let key=Array(NQ).fill(-1);
@@ -182,7 +182,6 @@ $('#neg').checked=settings.neg;$('#rev').checked=settings.rev;$('#sens').value=s
 $('#neg').onchange=e=>{settings.neg=e.target.checked;saveAll();};
 $('#rev').onchange=e=>{settings.rev=e.target.checked;saveAll();};
 buildKey();
-document.querySelectorAll('#toolbar [data-s]').forEach(b=>b.hidden=true);
 
 /* ============ هندسهٔ تصویر ============ */
 function solve(A,b){
